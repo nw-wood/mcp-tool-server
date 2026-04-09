@@ -1,0 +1,14 @@
+[package]
+name    = "mcp-config-cli"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "mcp-config"
+path = "src/main.rs"
+
+[dependencies]
+anyhow    = "1.0.102"
+clap      = { version = "4.6.0", features = ["derive"] }
+serde     = { version = "1.0.228", features = ["derive"] }
+toml_edit = "0.25.8"

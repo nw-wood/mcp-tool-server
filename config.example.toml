@@ -1,0 +1,203 @@
+# mcp-tool-server config
+# Each [[tools.<name>]] section defines one tool Claude can call.
+# Two kinds are supported: "exec" (runs a subprocess) and "value" (returns a static string).
+
+[tools.mcp_config]
+kind        = "exec"
+description = "Add, remove, or list tools in this MCP server config. Subcommands: list, add-exec, add-value, add-param, remove, show."
+executable  = "/path/to/mcp-tool-server/target/release/mcp-config"
+base_args   = ["--config", "/path/to/mcp-tool-server/config.toml", "{subcommand}"]
+timeout_secs = 10
+
+[[tools.mcp_config.params]]
+name        = "subcommand"
+description = "Full subcommand and arguments, e.g. 'list' or 'add-value my_tool --description \"desc\" --value \"val\"'"
+required    = true
+
+[tools.list_files]
+kind        = "exec"
+description = "List files in a directory"
+executable  = "ls"
+base_args   = ["-lah", "{path}"]
+timeout_secs = 10
+
+[[tools.list_files.params]]
+name        = "path"
+description = "Directory to list"
+required    = true
+
+[tools.run_command]
+kind        = "exec"
+description = "Run cargo build for a given package"
+executable  = "cargo"
+base_args   = ["build", "--package", "{package}"]
+working_dir = "/path/to/mcp-tool-server"
+timeout_secs = 120
+
+[tools.run_command.env]
+RUST_LOG = "info"
+
+[[tools.run_command.params]]
+name        = "package"
+description = "Cargo package name to build"
+required    = true
+
+[tools.run_tests]
+kind        = "exec"
+description = "Run cargo test for a given package"
+executable  = "cargo"
+base_args   = ["test", "--package", "{package}"]
+working_dir = "/path/to/mcp-tool-server"
+timeout_secs = 120
+
+[[tools.run_tests.params]]
+name        = "package"
+description = "Cargo package name to test"
+required    = true
+
+[tools.cargo_check]
+kind        = "exec"
+description = "Type-check a cargo package without building (faster than cargo build)"
+executable  = "cargo"
+base_args   = ["check", "--package", "{package}"]
+working_dir = "/path/to/mcp-tool-server"
+timeout_secs = 60
+
+[[tools.cargo_check.params]]
+name        = "package"
+description = "Cargo package name to check"
+required    = true
+
+[tools.git_status]
+kind        = "exec"
+description = "Show git working tree status for the project root"
+executable  = "git"
+base_args   = ["status"]
+working_dir = "/path/to/src"
+timeout_secs = 10
+
+[tools.git_log]
+kind        = "exec"
+description = "Show recent git log as one-line summaries"
+executable  = "git"
+base_args   = ["log", "--oneline", "--max-count={count}"]
+working_dir = "/path/to/src"
+timeout_secs = 10
+
+[[tools.git_log.params]]
+name        = "count"
+description = "Number of commits to show"
+required    = false
+default     = "20"
+
+[tools.get_git_root]
+kind        = "exec"
+description = "Return the git root for a given path"
+executable  = "git"
+base_args   = ["-C", "{path}", "rev-parse", "--show-toplevel"]
+timeout_secs = 10
+
+[[tools.get_git_root.params]]
+name        = "path"
+description = "Path inside the git repo"
+required    = true
+
+[tools.search_files]
+kind        = "exec"
+description = "Search file contents with ripgrep"
+executable  = "rg"
+base_args   = ["--color", "never", "--line-number", "{pattern}", "{path}"]
+timeout_secs = 15
+
+[[tools.search_files.params]]
+name        = "pattern"
+description = "Regex pattern to search for"
+required    = true
+
+[[tools.search_files.params]]
+name        = "path"
+description = "File or directory to search in"
+required    = false
+default     = "/path/to/src"
+
+[tools.tail_log]
+kind        = "exec"
+description = "Show the last N lines of a log file"
+executable  = "tail"
+base_args   = ["-n", "{lines}", "{path}"]
+timeout_secs = 10
+
+[[tools.tail_log.params]]
+name        = "path"
+description = "Path to the log file"
+required    = false
+default     = "/path/to/mcp-tool-server/config.log"
+
+[[tools.tail_log.params]]
+name        = "lines"
+description = "Number of lines to show"
+required    = false
+default     = "50"
+
+[tools.transit_route]
+kind        = "exec"
+description = "Find CDTA bus routes in the Capital District. Given an origin and destination address, returns itineraries using local bus service including walking legs, wait times, and arrival time. Requires GTFS data and geocoder index to be built first."
+executable  = "/path/to/mcp-tool-server/target/release/schenectady-transit"
+base_args   = ["route", "--from", "{from}", "--to", "{to}", "--arrive-by", "{arrive_by}", "--max-minutes", "{max_minutes}", "--max-transfers", "{max_transfers}"]
+working_dir = "/path/to/mcp-tool-server/schenectady-transit"
+timeout_secs = 30
+
+[[tools.transit_route.params]]
+name        = "from"
+description = "Origin address (e.g. '123 Main St, Schenectady NY')"
+required    = true
+
+[[tools.transit_route.params]]
+name        = "to"
+description = "Destination address (e.g. '456 Union St, Schenectady NY')"
+required    = true
+
+[[tools.transit_route.params]]
+name        = "arrive_by"
+description = "Time to arrive by, e.g. '14:30' or 'now'"
+required    = false
+default     = "now"
+
+[[tools.transit_route.params]]
+name        = "max_minutes"
+description = "Maximum total travel time in minutes including walking and waiting"
+required    = false
+default     = "90"
+
+[[tools.transit_route.params]]
+name        = "max_transfers"
+description = "Maximum number of bus transfers"
+required    = false
+default     = "2"
+
+[tools.transit_update_gtfs]
+kind        = "exec"
+description = "Download and cache the latest CDTA GTFS feed. Run this to refresh transit schedule data."
+executable  = "/path/to/mcp-tool-server/target/release/schenectady-transit"
+base_args   = ["update-gtfs"]
+working_dir = "/path/to/mcp-tool-server/schenectady-transit"
+timeout_secs = 60
+
+[tools.transit_build_geocoder]
+kind        = "exec"
+description = "Build the local address geocoder index from the OSM PBF extract. Run this once before using transit_route."
+executable  = "/path/to/mcp-tool-server/target/release/schenectady-transit"
+base_args   = ["build-geocoder"]
+working_dir = "/path/to/mcp-tool-server/schenectady-transit"
+timeout_secs = 120
+
+[tools.get_project_root]
+kind        = "value"
+description = "Returns the project root path"
+value       = "/path/to/src"
+
+[tools.whoami]
+kind        = "exec"
+description = "Show current user"
+executable  = "whoami"
+base_args   = []

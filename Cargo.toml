@@ -1,0 +1,31 @@
+[workspace]
+members = [
+    ".",
+    "mcp-config-cli",
+    "mcp-test-sandbox",
+    "schenectady-transit",
+]
+resolver = "2"
+
+[profile.release]
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = 'abort'
+strip = true
+
+[package]
+name    = "mcp-tool-server"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "mcp-tool-server"
+path = "src/main.rs"
+
+[dependencies]
+anyhow     = "1.0.102"
+serde      = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+toml       = "1.1.0"
+tokio      = { version = "1.50.0", features = ["full"] }
