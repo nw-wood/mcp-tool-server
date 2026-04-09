@@ -1,3 +1,7 @@
+### hi yes this is an mcp server that runs in rust and provides tools to claude code
+### setting up something like this allows you to give claude direct access to tooling on your system
+### there is an included city bus routing tool as a test for anyone interested in playing with that
+
 # mcp-tool-server
 
 MCP stdio server that exposes configurable tools to Claude Code.
